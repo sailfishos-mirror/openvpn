@@ -25,6 +25,7 @@
 
 #include "basic.h"
 #include "error.h"
+#include "integer.h"
 
 #define BUF_SIZE_MAX 1000000
 
@@ -702,6 +703,13 @@ buf_write_u32(struct buffer *dest, uint32_t data)
 }
 
 static inline bool
+buf_write_u64(struct buffer *dest, uint64_t data)
+{
+    uint64_t u64 = htonll(data);
+    return buf_write(dest, &u64, sizeof(uint64_t));
+}
+
+static inline bool
 buf_copy(struct buffer *dest, const struct buffer *src)
 {
     return buf_write(dest, BPTR(src), BLENZ(src));
@@ -824,6 +832,30 @@ buf_read_u32(struct buffer *buf, bool *good)
             *good = true;
         }
         return ntohl(ret);
+    }
+}
+
+/* Read a 64-bit big-endian value (see buf_write_u64()). Sets *good to indicate
+ * success, like buf_read_u32(). */
+static inline uint64_t
+buf_read_u64(struct buffer *buf, bool *good)
+{
+    uint64_t ret;
+    if (!buf_read(buf, &ret, sizeof(uint64_t)))
+    {
+        if (good)
+        {
+            *good = false;
+        }
+        return 0;
+    }
+    else
+    {
+        if (good)
+        {
+            *good = true;
+        }
+        return ntohll(ret);
     }
 }
 
