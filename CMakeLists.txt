@@ -819,7 +819,6 @@ if (BUILD_TESTING)
 
     target_sources(test_mbuf PRIVATE
         tests/unit_tests/openvpn/mock_get_random.c
-        src/openvpn/buffer.c
         src/openvpn/mbuf.c
         )
 
