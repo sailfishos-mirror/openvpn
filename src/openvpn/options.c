@@ -486,8 +486,8 @@ static const char usage_message[] =
     "                  virtual address table to v.\n"
     "--bcast-buffers n : Allocate n broadcast buffers.\n"
     "--tcp-queue-limit n : Maximum number of queued TCP output packets.\n"
-    "--tcp-nodelay   : Macro that sets TCP_NODELAY socket flag on the server\n"
-    "                  as well as pushes it to connecting clients.\n"
+    "--tcp-nodelay   : In server mode, push TCP_NODELAY to clients (it is\n"
+    "                  enabled by default on the local socket).\n"
     "--learn-address cmd : Run command cmd to validate client virtual addresses.\n"
     "--connect-freq n s : Allow a maximum of n new connections per s seconds.\n"
     "--connect-freq-initial n s : Allow a maximum of n replies for initial connections attempts per s seconds.\n"
@@ -2618,6 +2618,13 @@ options_postprocess_verify_ce(const struct options *options, const struct connec
             MUST_BE_UNDEF(vlan_accept, "vlan-accept");
             MUST_BE_UNDEF(vlan_pvid, "vlan-pvid");
         }
+
+        if (options->server_flags & SF_TCP_NODELAY_HELPER)
+        {
+            msg(M_INFO, "NOTE: TCP_NODELAY is always enabled locally; "
+                        "--tcp-nodelay is now only useful to push the flag to "
+                        "clients older than 2.7.6.");
+        }
     }
     else
     {
@@ -2648,9 +2655,7 @@ options_postprocess_verify_ce(const struct options *options, const struct connec
         MUST_BE_FALSE(options->ssl_flags & SSLF_AUTH_USER_PASS_OPTIONAL, "auth-user-pass-optional");
         if (options->server_flags & SF_TCP_NODELAY_HELPER)
         {
-            msg(M_WARN, "WARNING: setting tcp-nodelay on the client side will not "
-                        "affect the server. To have TCP_NODELAY in both direction use "
-                        "tcp-nodelay in the server configuration instead.");
+            msg(M_WARN, "DEPRECATED OPTION: --tcp-nodelay is always enabled on clients");
         }
         MUST_BE_UNDEF(auth_user_pass_verify_script, "auth-user-pass-verify");
         MUST_BE_UNDEF(auth_token_generate, "auth-gen-token");
@@ -6537,11 +6542,9 @@ add_option(struct options *options, char *p[], bool is_inline, const char *file,
         VERIFY_PERMISSION(OPT_P_SOCKFLAGS);
         for (j = 1; j < MAX_PARMS && p[j]; ++j)
         {
-            if (streq(p[j], "TCP_NODELAY"))
-            {
-                options->sockflags |= SF_TCP_NODELAY;
-            }
-            else
+            /* TCP_NODELAY is enabled by default; the flag is still accepted
+             * for backwards compatibility but no longer has any effect */
+            if (!streq(p[j], "TCP_NODELAY"))
             {
                 msg(msglevel, "unknown socket flag: %s", p[j]);
             }

@@ -465,23 +465,20 @@ the local and the remote host.
   trying to group several smaller packets into a larger packet.  This can
   result in a considerably improvement in latency.
 
-  This option is pushable from server to client, and should be used on
-  both client and server for maximum effect.
+  Since OpenVPN 2.7.6 :code:`TCP_NODELAY` is enabled by default on every TCP
+  socket, so specifying it here is no longer necessary.
 
 --tcp-nodelay
-  This macro sets the :code:`TCP_NODELAY` socket flag on the server as well
-  as pushes it to connecting clients. The :code:`TCP_NODELAY` flag disables
-  the Nagle algorithm on TCP sockets causing packets to be transmitted
-  immediately with low latency, rather than waiting a short period of time
-  in order to aggregate several packets into a larger containing packet.
-  In VPN applications over TCP, :code:`TCP_NODELAY` is generally a good
-  latency optimization.
+  :code:`TCP_NODELAY` is enabled by default on every TCP socket. In
+  ``--mode server`` this option additionally pushes
+  ``socket-flags TCP_NODELAY`` to connecting clients, so that clients older
+  than 2.7.6 get it too. The option can be removed once such clients are no
+  longer in use.
 
   The macro expands as follows:
   ::
 
      if mode server:
-         socket-flags TCP_NODELAY
          push "socket-flags TCP_NODELAY"
 
 --max-packet-size size
