@@ -99,14 +99,6 @@ print_str_int(const char *str, const int i, struct gc_arena *gc)
     return BSTR(&out);
 }
 
-static const char *
-print_str(const char *str, struct gc_arena *gc)
-{
-    struct buffer out = alloc_buf_gc(128, gc);
-    buf_printf(&out, "%s", str);
-    return BSTR(&out);
-}
-
 static void
 helper_add_route(const in_addr_t network, const in_addr_t netmask, struct options *o)
 {
@@ -601,22 +593,13 @@ helper_keepalive(struct options *o)
  * EXPANDS TO:
  *
  * if mode server:
- *   socket-flags TCP_NODELAY
  *   push "socket-flags TCP_NODELAY"
  */
 void
 helper_tcp_nodelay(struct options *o)
 {
-    if (o->server_flags & SF_TCP_NODELAY_HELPER)
+    if ((o->server_flags & SF_TCP_NODELAY_HELPER) && o->mode == MODE_SERVER)
     {
-        if (o->mode == MODE_SERVER)
-        {
-            o->sockflags |= SF_TCP_NODELAY;
-            push_option(o, print_str("socket-flags TCP_NODELAY", &o->gc), M_USAGE);
-        }
-        else
-        {
-            o->sockflags |= SF_TCP_NODELAY;
-        }
+        push_option(o, "socket-flags TCP_NODELAY", M_USAGE);
     }
 }
