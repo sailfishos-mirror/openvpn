@@ -6794,24 +6794,29 @@ add_option(struct options *options, char *p[], bool is_inline, const char *file,
     else if (streq(p[0], "keepalive") && p[1] && p[2] && !p[3])
     {
         VERIFY_PERMISSION(OPT_P_GENERAL);
-        atoi_constrained(p[1], &options->keepalive_ping, "keepalive ping", 1, INT_MAX, msglevel);
-        atoi_constrained(p[2], &options->keepalive_timeout, "keepalive timeout", 1, INT_MAX, msglevel);
+        atoi_constrained(p[1], &options->keepalive_ping, "keepalive ping",
+                         1, PING_TIMEOUT_MAX, msglevel);
+        atoi_constrained(p[2], &options->keepalive_timeout, "keepalive timeout",
+                         1, PING_TIMEOUT_MAX, msglevel);
     }
     else if (streq(p[0], "ping") && p[1] && !p[2])
     {
         VERIFY_PERMISSION(OPT_P_TIMER);
-        options->ping_send_timeout = positive_atoi(p[1], msglevel);
+        atoi_constrained(p[1], &options->ping_send_timeout, p[0],
+                         0, PING_TIMEOUT_MAX, msglevel);
     }
     else if (streq(p[0], "ping-exit") && p[1] && !p[2])
     {
         VERIFY_PERMISSION(OPT_P_TIMER);
-        options->ping_rec_timeout = positive_atoi(p[1], msglevel);
+        atoi_constrained(p[1], &options->ping_rec_timeout, p[0],
+                         0, PING_TIMEOUT_MAX, msglevel);
         options->ping_rec_timeout_action = PING_EXIT;
     }
     else if (streq(p[0], "ping-restart") && p[1] && !p[2])
     {
         VERIFY_PERMISSION(OPT_P_TIMER);
-        options->ping_rec_timeout = positive_atoi(p[1], msglevel);
+        atoi_constrained(p[1], &options->ping_rec_timeout, p[0],
+                         0, PING_TIMEOUT_MAX, msglevel);
         options->ping_rec_timeout_action = PING_RESTART;
     }
     else if (streq(p[0], "ping-timer-rem") && !p[1])

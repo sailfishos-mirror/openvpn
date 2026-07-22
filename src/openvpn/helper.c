@@ -555,6 +555,12 @@ helper_keepalive(struct options *o)
             msg(M_USAGE,
                 "--keepalive conflicts with --ping, --ping-exit, or --ping-restart.  If you use --keepalive, you don't need any of the other --ping directives.");
         }
+        if (o->mode == MODE_SERVER && o->keepalive_timeout > PING_TIMEOUT_MAX / 2)
+        {
+            msg(M_USAGE,
+                "The second parameter to --keepalive must not exceed %d in server mode.",
+                PING_TIMEOUT_MAX / 2);
+        }
 
         /*
          * Expand.
